@@ -82,8 +82,8 @@ public class CustomerService {
         } else
             try {
                 File f1 = ResourceUtils.getFile("classpath:datalist.txt");
-                FileReader fr = new FileReader(f1);  //Creation of File Reader object
-                BufferedReader br = new BufferedReader(fr); //Creation of BufferedReader object
+                FileReader fr = new FileReader(f1);
+                BufferedReader br = new BufferedReader(fr);
                 String s;
                 String[] words = payload.getReceiverAccountName().split(" ");
                 Permutations putil = new Permutations(Arrays.asList(words));

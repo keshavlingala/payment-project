@@ -12,8 +12,9 @@ import tech.keshav.payment.paymentproject.services.CustomerService;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/user")
+@RequestMapping("api")
 @AllArgsConstructor
+@CrossOrigin(origins = "*")
 public class CustomerController {
 
     CustomerService customerService;
