@@ -18,6 +18,6 @@ public class MessageCode {
     @Id
     String messageCode;
     @NotNull
-    String Description;
+    String description;
 
 }

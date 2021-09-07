@@ -47,8 +47,8 @@ public class CustomerService {
         return customerRepository.findById(cid);
     }
 
-    public BankBIC getBankByBIC(String bic) {
-        return bankRepository.findById(bic).get();
+    public Optional<BankBIC> getBankByBIC(String bic) {
+        return bankRepository.findById(bic);
     }
 
     @Transactional
@@ -94,7 +94,7 @@ public class CustomerService {
                 while ((s = br.readLine()) != null) {
                     Matcher m = p.matcher(s);
                     if (m.find()) {
-                        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomResponse("Red Alert",
+                        return ResponseEntity.status(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS).body(new CustomResponse("Red Alert",
                                 "(Busted) The Account Holder name is found in SDNList... This will be reported to higher authority.... DANGER!!! DANGER!!!!"));
                     }
                 }
@@ -129,5 +129,9 @@ public class CustomerService {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new TransactionResponse(request, customer, transferFee, totalAmount, transactionItem));
+    }
+
+    public ResponseEntity<Object> getMessageCodes() {
+        return ResponseEntity.status(HttpStatus.OK).body(messageCodeRepository.findAll());
     }
 }

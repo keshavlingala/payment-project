@@ -20,7 +20,6 @@ public class TransactionResponse {
         this.sender = customer;
         this.transaction = new TransactionDetails(transferFee,totalAmount,request.getPayload().getTransferTypeCode());
         this.date = transactionItem.getTimestamp();
-        this.senderBIC = request.getPayload().getSenderBIC();
         this.receiverBIC=request.getPayload().getReceiverBIC();
         this.receiverAccountName = request.getPayload().getReceiverAccountName();
         this.receiverAccountNumber = request.getPayload().getReceiverAccountNumber();

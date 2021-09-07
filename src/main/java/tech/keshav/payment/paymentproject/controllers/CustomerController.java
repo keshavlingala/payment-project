@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import tech.keshav.payment.paymentproject.entities.BankBIC;
 import tech.keshav.payment.paymentproject.entities.Customer;
 import tech.keshav.payment.paymentproject.models.CustomResponse;
 import tech.keshav.payment.paymentproject.models.TransactionRequest;
@@ -31,17 +32,28 @@ public class CustomerController {
         return customer.<ResponseEntity<Object>>map(value -> ResponseEntity.status(HttpStatus.OK).body(value)).orElseGet(() -> ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(
-                        new CustomResponse("Customer Not Found", "Customer with given ID " + cid + " Not Found")
+                        new CustomResponse("Account Doesn't Exist!", "Account with given A/C(" + cid + ") does not Exist!")
                 ));
     }
 
     @GetMapping("bank/{bic}")
     public ResponseEntity<Object> getBankByBIC(@PathVariable String bic) {
-        return ResponseEntity.status(HttpStatus.OK).body(customerService.getBankByBIC(bic));
+        Optional<BankBIC> bank = customerService.getBankByBIC(bic);
+        return bank.<ResponseEntity<Object>>map(value -> ResponseEntity.status(HttpStatus.OK).body(value)).orElseGet(() -> ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(
+                        new CustomResponse("Bank Doesn't Exist!", "Bank with given BIC(" + bic + ") does not Exist!")
+                ));
+
     }
 
     @PostMapping("transaction")
-    public ResponseEntity<Object> makeTransaction(@RequestBody TransactionRequest request){
+    public ResponseEntity<Object> makeTransaction(@RequestBody TransactionRequest request) {
         return customerService.processTransaction(request);
+    }
+
+    @GetMapping("messagecodes")
+    public ResponseEntity<Object> getAllMessageCodes() {
+        return customerService.getMessageCodes();
     }
 }
