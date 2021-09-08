@@ -1,6 +1,7 @@
 package tech.keshav.payment.paymentproject.services;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -133,5 +134,12 @@ public class CustomerService {
 
     public ResponseEntity<Object> getMessageCodes() {
         return ResponseEntity.status(HttpStatus.OK).body(messageCodeRepository.findAll());
+    }
+
+    public ResponseEntity<Object> getAllTransactions() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(this.transactionRepository
+                        .findAll(Sort.by(Sort.Direction.ASC, "transactionID")));
     }
 }

@@ -20,6 +20,11 @@ public class CustomerController {
 
     CustomerService customerService;
 
+    @GetMapping("transactions")
+    public ResponseEntity<Object> getAllTransaction() {
+        return customerService.getAllTransactions();
+    }
+
     @RequestMapping("alive")
     public Boolean isAlive() {
         return true;

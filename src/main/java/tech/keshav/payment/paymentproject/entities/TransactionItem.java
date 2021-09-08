@@ -23,6 +23,7 @@ public class TransactionItem {
     @NotNull
     String receiverName;
     @NotNull
+    @Column(length = 14)
     String receiverAccountNumber;
     @ManyToOne
     @JoinColumn(name = "receiver_bic")
