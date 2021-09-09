@@ -9,11 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 import tech.keshav.payment.paymentproject.entities.BankBIC;
 import tech.keshav.payment.paymentproject.entities.Customer;
+import tech.keshav.payment.paymentproject.entities.MessageCode;
 import tech.keshav.payment.paymentproject.entities.TransactionItem;
-import tech.keshav.payment.paymentproject.models.CustomResponse;
-import tech.keshav.payment.paymentproject.models.TransactionPayload;
-import tech.keshav.payment.paymentproject.models.TransactionRequest;
-import tech.keshav.payment.paymentproject.models.TransactionResponse;
+import tech.keshav.payment.paymentproject.models.*;
 import tech.keshav.payment.paymentproject.repositories.BankRepository;
 import tech.keshav.payment.paymentproject.repositories.CustomerRepository;
 import tech.keshav.payment.paymentproject.repositories.MessageCodeRepository;
@@ -44,6 +42,23 @@ public class CustomerService {
     TransactionRepository transactionRepository;
 
 
+    private TransactionItem saveTransactionItem(Customer customer, Double totalAmount,
+                                                TransactionPayload payload, BankBIC bankbic,
+                                                MessageCode messageCode, TransactionStatus status, String reason) {
+        TransactionItem transactionItem = new TransactionItem();
+        transactionItem.setCustomer(customer);
+        transactionItem.setAmount(totalAmount);
+        transactionItem.setTransferCode(payload.getTransferTypeCode());
+        transactionItem.setTimestamp(new Date());
+        transactionItem.setReceiverBIC(bankRepository.findById(payload.getReceiverBIC()).get());
+        transactionItem.setMessageCode(messageCodeRepository.findById(payload.getMessageCode()).get());
+        transactionItem.setReceiverAccountNumber(payload.getReceiverAccountNumber());
+        transactionItem.setReceiverName(payload.getReceiverAccountName());
+        transactionItem.setStatus(status);
+        transactionItem.setFailureReason(reason);
+        return transactionRepository.save(transactionItem);
+    }
+
     public Optional<Customer> getCustomerById(String cid) {
         return customerRepository.findById(cid);
     }
@@ -69,13 +84,42 @@ public class CustomerService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new CustomResponse("Invalid Transfer Type Code", "Transfer Type Code is not valid"));
         }
 
-        // TODO black list check filter of sender
+        Double transferFee = 0.0025 * payload.getAmount();
+        Double totalAmount = payload.getAmount() + transferFee;
+        if (customer.getClearBalance() < totalAmount && !customer.getOverdraft()) {
+            saveTransactionItem(customer, totalAmount, payload, bankRepository.findById(payload.getReceiverBIC()).get()
+                    , messageCodeRepository.findById(payload.getMessageCode()).get(), TransactionStatus.FAILED, "Insufficient Balance in Bank Account");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomResponse("Transaction Failed",
+                    "Insufficient Balance in your Account brooo.....!!  :-( Poor Brooo...."));
+        }
+
+        Optional<Customer> receiver = customerRepository.findById(payload.getReceiverAccountNumber());
+        // Check if Transfer is done to same a/c number
+        if (customer.getAccountNumber().equals(payload.getReceiverAccountNumber())) {
+            saveTransactionItem(customer, totalAmount, payload, bankRepository.findById(payload.getReceiverBIC()).get()
+                    , messageCodeRepository.findById(payload.getMessageCode()).get(), TransactionStatus.FAILED, "Cannot Transfer amount to itself");
+            return ResponseEntity
+                    .status(HttpStatus.NOT_ACCEPTABLE)
+                    .body(new CustomResponse("Transaction Failed", "Cannot Transfer amount to itself"));
+        }
+        // Check if Sender is a Bank
+        if (customer.getName().toUpperCase().contains("HDFC BANK")) {
+            // if sender is bank then receiver must be a bank
+            if (receiver.isEmpty() || receiver.get().getName().toUpperCase().contains("HDFC BANK")) {
+                saveTransactionItem(customer, totalAmount, payload, bankRepository.findById(payload.getReceiverBIC()).get()
+                        , messageCodeRepository.findById(payload.getMessageCode()).get(), TransactionStatus.FAILED, "Bank can only transfer amount to other Bank\"");
+                return ResponseEntity
+                        .status(HttpStatus.NOT_ACCEPTABLE)
+                        .body(new CustomResponse("Transaction Failed", "Bank can only transfer amount to other Bank"));
+            }
+        }
 
         if (payload.getTransferTypeCode().equals("O")) {
-            Optional<Customer> receiver = customerRepository.findById(payload.getReceiverAccountNumber());
             if (receiver.isEmpty()
                     || !receiver.get().getName().toUpperCase().contains("HDFC BANK")
                     || !customer.getName().toUpperCase().contains("HDFC BANK")) {
+                saveTransactionItem(customer, totalAmount, payload, bankRepository.findById(payload.getReceiverBIC()).get()
+                        , messageCodeRepository.findById(payload.getMessageCode()).get(), TransactionStatus.FAILED, "Receiver and Sender Account number must be an Internal HDFC bank");
                 return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(new CustomResponse("Transaction Failed: Invalid Receiver A/c",
                         "Receiver and Sender Account number must be an Internal HDFC bank"));
             }
@@ -95,6 +139,8 @@ public class CustomerService {
                 while ((s = br.readLine()) != null) {
                     Matcher m = p.matcher(s);
                     if (m.find()) {
+                        saveTransactionItem(customer, totalAmount, payload, bankRepository.findById(payload.getReceiverBIC()).get()
+                                , messageCodeRepository.findById(payload.getMessageCode()).get(), TransactionStatus.FAILED, "Name Found in SDN List");
                         return ResponseEntity.status(HttpStatus.UNAVAILABLE_FOR_LEGAL_REASONS).body(new CustomResponse("Red Alert",
                                 "(Busted) The Account Holder name is found in SDNList... This will be reported to higher authority.... DANGER!!! DANGER!!!!"));
                     }
@@ -104,26 +150,8 @@ public class CustomerService {
             }
 
 
-        //end code
-
-        Double transferFee = 0.0025 * payload.getAmount();
-        Double totalAmount = payload.getAmount() + transferFee;
-        if (customer.getClearBalance() < totalAmount && !customer.getOverdraft()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new CustomResponse("Transaction Failed",
-                    "Insuffient Balance in you Account brooo.....!!  :-( Poor Sad Brooo...."));
-        }
-
-
-        TransactionItem transactionItem = new TransactionItem();
-        transactionItem.setCustomer(customer);
-        transactionItem.setAmount(totalAmount);
-        transactionItem.setTransferCode(payload.getTransferTypeCode());
-        transactionItem.setTimestamp(new Date());
-        transactionItem.setReceiverBIC(bankRepository.findById(payload.getReceiverBIC()).get());
-        transactionItem.setMessageCode(messageCodeRepository.findById(payload.getMessageCode()).get());
-        transactionItem.setReceiverAccountNumber(payload.getReceiverAccountNumber());
-        transactionItem.setReceiverName(payload.getReceiverAccountName());
-        transactionRepository.save(transactionItem);
+        TransactionItem transactionItem = saveTransactionItem(customer, totalAmount, payload, bankRepository.findById(payload.getReceiverBIC()).get()
+                , messageCodeRepository.findById(payload.getMessageCode()).get(), TransactionStatus.SUCCESS, null);
         customer.setClearBalance(customer.getClearBalance() - Math.abs(totalAmount));
         customerRepository.save(customer);
         // Create Transaction Object

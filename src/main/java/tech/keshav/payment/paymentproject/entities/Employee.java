@@ -1,18 +1,16 @@
 package tech.keshav.payment.paymentproject.entities;
 
-import javax.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.Hibernate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Getter
@@ -50,7 +48,6 @@ public class Employee implements UserDetails, Serializable {
     public boolean isEnabled() {
         return true;
     }
-
 
 
 }
