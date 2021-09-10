@@ -12,6 +12,7 @@ import tech.keshav.payment.paymentproject.services.CustomerService;
 
 import java.util.Optional;
 
+@SuppressWarnings("SameReturnValue")
 @RestController
 @RequestMapping("api")
 @AllArgsConstructor

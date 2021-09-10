@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Permutations {
-    private List<String> allCombinations=new ArrayList<>();
+    private final List<String> allCombinations=new ArrayList<>();
     void permute(List<String> words, int k){
         for(int i = k; i < words.size(); i++){
             Collections.swap(words, i, k);

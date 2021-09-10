@@ -3,6 +3,7 @@ package tech.keshav.payment.paymentproject.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@SuppressWarnings("ALL")
 @RestController
 public class WelcomeController {
     @RequestMapping
