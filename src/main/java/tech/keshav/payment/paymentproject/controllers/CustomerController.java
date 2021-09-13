@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import tech.keshav.payment.paymentproject.entities.BankBIC;
 import tech.keshav.payment.paymentproject.entities.Customer;
 import tech.keshav.payment.paymentproject.models.CustomResponse;
+import tech.keshav.payment.paymentproject.models.CustomerAmount;
 import tech.keshav.payment.paymentproject.models.TransactionRequest;
 import tech.keshav.payment.paymentproject.services.CustomerService;
 
+import java.util.List;
 import java.util.Optional;
 
 @SuppressWarnings("SameReturnValue")
@@ -31,6 +33,17 @@ public class CustomerController {
         return true;
     }
 
+
+    @GetMapping("top")
+    public List<Object> getTopCustomers(){
+        return customerService.getTopCustomers();
+    }
+    @GetMapping("message-count")
+    public List<Object> messageCount(){
+        return this.customerService.countByMessage();
+    }
+
+
     @GetMapping("customer/{cid}")
     public ResponseEntity<Object> getCustomerById(@PathVariable String cid) {
         Optional<Customer> customer = customerService.getCustomerById(cid);
@@ -51,6 +64,11 @@ public class CustomerController {
                         new CustomResponse("Bank Doesn't Exist!", "Bank with given BIC(" + bic + ") does not Exist!")
                 ));
 
+    }
+
+    @GetMapping("bank-amount")
+    public List<Object> getBankAmount() {
+        return customerService.getBankAmount();
     }
 
     @PostMapping("transaction")

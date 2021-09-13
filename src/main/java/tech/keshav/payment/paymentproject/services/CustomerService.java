@@ -170,4 +170,16 @@ public class CustomerService {
                 .body(this.transactionRepository
                         .findAll(Sort.by(Sort.Direction.ASC, "transactionID")));
     }
+
+    public List<Object> getTopCustomers() {
+        return this.transactionRepository.getTopCustomers();
+    }
+
+    public List<Object> countByMessage() {
+        return this.transactionRepository.countByMessage();
+    }
+
+    public List<Object> getBankAmount() {
+        return transactionRepository.receiverBankAmount();
+    }
 }
