@@ -76,7 +76,12 @@ public class CustomerController {
         return customerService.processTransaction(request);
     }
 
-    @GetMapping("messagecodes")
+    @GetMapping("dateStats")
+    public ResponseEntity<Object> dateStats(){
+        return  customerService.getDateStats();
+    }
+
+    @GetMapping("messageCodes")
     public ResponseEntity<Object> getAllMessageCodes() {
         return customerService.getMessageCodes();
     }

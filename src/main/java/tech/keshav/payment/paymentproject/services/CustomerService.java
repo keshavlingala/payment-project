@@ -182,4 +182,8 @@ public class CustomerService {
     public List<Object> getBankAmount() {
         return transactionRepository.receiverBankAmount();
     }
+
+    public ResponseEntity<Object> getDateStats() {
+        return ResponseEntity.status(HttpStatus.OK).body(transactionRepository.getDateStats());
+    }
 }
