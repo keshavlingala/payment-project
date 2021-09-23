@@ -28,7 +28,7 @@ public class CustomerController {
         return customerService.getAllTransactions();
     }
 
-    @RequestMapping("alive")
+    @GetMapping("alive")
     public Boolean isAlive() {
         return true;
     }
